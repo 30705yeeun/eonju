@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 뭐 먹지? | 저녁 메뉴 추천</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f7f8fa;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 480px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #222;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .category-group {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #555;
+        }
+
+        .category-btn.active {
+            background-color: #ff6b6b;
+            color: #fff;
+            border-color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .display-box {
+            background-color: #fff5f5;
+            border: 2px dashed #ffc9c9;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 25px;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .menu-name {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ff4757;
+            margin-bottom: 8px;
+            word-break: keep-all;
+        }
+
+        .menu-category {
+            font-size: 0.85rem;
+            color: #888;
+            background-color: #fff;
+            padding: 3px 10px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .recommend-btn {
+            width: 100%;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .recommend-btn:hover {
+            background-color: #ee5253;
+        }
+
+        .recommend-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>오늘 뭐 먹지? 🍽️</h1>
+        <p class="subtitle">결정장애를 해결해 드리는 저녁 메뉴 추천</p>
+
+        <!-- 카테고리 필터 -->
+        <div class="category-group">
+            <button class="category-btn active" onclick="setCategory('전체')">전체</button>
+            <button class="category-btn" onclick="setCategory('한식')">한식</button>
+            <button class="category-btn" onclick="setCategory('중식')">중식</button>
+            <button class="category-btn" onclick="setCategory('일식')">일식</button>
+            <button class="category-btn" onclick="setCategory('양식')">양식</button>
+            <button class="category-btn" onclick="setCategory('분식/기타')">분식/기타</button>
+        </div>
+
+        <!-- 결과 출력 창 -->
+        <div class="display-box">
+            <div id="menu-name" class="menu-name">버튼을 눌러보세요!</div>
+            <div id="menu-category" class="menu-category" style="display: none;">카테고리</div>
+        </div>
+
+        <!-- 추천 버튼 -->
+        <button class="recommend-btn" onclick="pickRandomMenu()">메뉴 추천받기 🎲</button>
+    </div>
+
+    <script>
+        // 메뉴 데이터 베이스
+        const menuList = [
+            // 한식
+            { name: "김치찌개", category: "한식" },
+            { name: "된장찌개", category: "한식" },
+            { name: "삼겹살 구이", category: "한식" },
+            { name: "제육볶음", category: "한식" },
+            { name: "닭볶음탕", category: "한식" },
+            { name: "비빔밥", category: "한식" },
+            { name: "국밥 (돼지/순대)", category: "한식" },
+            
+            // 중식
+            { name: "짜장면", category: "중식" },
+            { name: "짬뽕", category: "중식" },
+            { name: "탕수육", category: "중식" },
+            { name: "마라탕", category: "중식" },
+            { name: "볶음밥", category: "중식" },
+
+            // 일식
+            { name: "돈까스", category: "일식" },
+            { name: "초밥 (스시)", category: "일식" },
+            { name: "라멘", category: "일식" },
+            { name: "연어덮밥 (사케동)", category: "일식" },
+            { name: "우동", category: "일식" },
+
+            // 양식
+            { name: "토마토 파스타", category: "양식" },
+            { name: "크림 파스타", category: "양식" },
+            { name: "피자", category: "양식" },
+            { name: "스테이크", category: "양식" },
+            { name: "수제버거", category: "양식" },
+
+            // 분식/기타
+            { name: "떡볶이 & 튀김", category: "분식/기타" },
+            { name: "치킨", category: "분식/기타" },
+            { name: "족발 / 보쌈", category: "분식/기타" },
+            { name: "월남쌈 / 쌀국수", category: "분식/기타" },
+            { name: "타코 / 브리또", category: "분식/기타" }
+        ];
+
+        let currentCategory = "전체";
+
+        // 카테고리 변경 함수
+        function setCategory(category) {
+            currentCategory = category;
+            
+            // 버튼 스타일 업데이트
+            const buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(btn => {
+                if (btn.innerText === category) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // 랜덤 메뉴 뽑기 함수 (추첨 애니메이션 효과 포함)
+        function pickRandomMenu() {
+            // 선택한 카테고리에 맞는 메뉴만 필터링
+            const filteredMenu = currentCategory === "전체" 
+                ? menuList 
+                : menuList.filter(item => item.category === currentCategory);
+
+            if (filteredMenu.length === 0) {
+                alert("해당 카테고리에 메뉴가 없습니다!");
+                return;
+            }
+
+            const menuNameElem = document.getElementById('menu-name');
+            const menuCategoryElem = document.getElementById('menu-category');
+
+            // 버튼 클릭 시 0.5초간 빠르게 글자가 바뀌는 효과
+            let count = 0;
+            const interval = setInterval(() => {
+                const tempIndex = Math.floor(Math.random() * filteredMenu.length);
+                menuNameElem.innerText = filteredMenu[tempIndex].name;
+                count++;
+
+                if (count > 10) { // 10번 바뀐 후 최종 결정
+                    clearInterval(interval);
+                    const finalIndex = Math.floor(Math.random() * filteredMenu.length);
+                    const selected = filteredMenu[finalIndex];
+
+                    menuNameElem.innerText = selected.name;
+                    menuCategoryElem.innerText = selected.category;
+                    menuCategoryElem.style.display = "inline-block";
+                }
+            }, 50);
+        }
+    </script>
+</body>
+</html>
